@@ -12,6 +12,7 @@ volumes:
   beacon-prometheus4_data: {}
   dclocal-prometheus1_data: {}
   dclocal-prometheus2_data: {}
+  thanos_data: {}
 
 services:
   grafana:
@@ -227,12 +228,13 @@ services:
     container_name: thanos-store
     image: thanosio/thanos:v0.24.0
     volumes:
-        - ./thanos/:/etc/thanos/
+      - thanos_data:/data
+      - ./thanos/:/etc/thanos/
     command:
         - 'store'
         - '--grpc-address=0.0.0.0:10091'
         - '--http-address=0.0.0.0:10902'
-        - '--data-dir=/tmp/thanos-store'
+        - '--data-dir=/data/store'
         - '--objstore.config-file=/etc/thanos/bucket.yml'
     networks:
       - thanos
@@ -247,7 +249,7 @@ services:
       - 'receive'
       - '--debug.name=thanos-receive'
       - '--log.level=debug'
-      - '--tsdb.path=/tmp/thanos-receive'
+      - '--tsdb.path=/data/receive'
       - '--grpc-address=0.0.0.0:10901'
       - '--grpc-grace-period=1s'
       - '--http-address=0.0.0.0:10902'
@@ -256,6 +258,7 @@ services:
       - '--objstore.config-file=/etc/thanos/bucket.yml'
       - '--remote-write.address=0.0.0.0:10903'
     volumes:
+      - thanos_data:/data
       - ./thanos:/etc/thanos
     depends_on:
       - minio
@@ -267,13 +270,14 @@ services:
     container_name: thanos-ruler
     image: thanosio/thanos:v0.24.0
     volumes:
-        - ./thanos/:/etc/thanos/
+      - thanos_data:/data
+      - ./thanos/:/etc/thanos/
     command:
         - 'rule'
         - '--grpc-address=0.0.0.0:10091'
         - '--http-address=0.0.0.0:10902'
         - '--log.level=debug'
-        - '--data-dir=/data'
+        - '--data-dir=/data/ruler'
         - '--eval-interval=15s'
         - '--rule-file=/etc/thanos/*.rules.yml'
         - '--alertmanagers.url=http://alertmanager:9093'
@@ -334,11 +338,13 @@ services:
     container_name: thanos-compactor
     image: thanosio/thanos:v0.24.0
     volumes:
-        - ./thanos/:/etc/thanos/
+      - thanos_data:/data
+      - ./thanos/:/etc/thanos/
     command:
         - 'compact'
+        - '--http-address=0.0.0.0:10902'
         - '--log.level=debug'
-        - '--data-dir=/data'
+        - '--data-dir=/data/compactor'
         - '--objstore.config-file=/etc/thanos/bucket.yml'
         - '--wait'
     networks:
