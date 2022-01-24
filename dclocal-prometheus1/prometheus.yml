@@ -20,7 +20,7 @@ scrape_configs:
     scrape_interval: 5s
     static_configs:
     - targets:
-      - 'thanos-store:10906'
+      - 'thanos-store:10902'
       labels:
         instance: 'dclocal-prometheus1'
         target: thanos-store
@@ -29,7 +29,7 @@ scrape_configs:
     scrape_interval: 5s
     static_configs:
     - targets:
-      - 'thanos-receive:10909'
+      - 'thanos-receive:10902'
       labels:
         instance: 'dclocal-prometheus1'
         target: thanos-receive
