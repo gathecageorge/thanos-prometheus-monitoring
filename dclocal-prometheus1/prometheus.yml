@@ -3,8 +3,6 @@ global:
   evaluation_interval: 5s
   external_labels:
     cluster: 'dclocal-prometheus1'
-    instance: 'dclocal-prometheus1'
-    replica: '1'
 
 scrape_configs:
   - job_name: dclocal-prometheus1
@@ -13,62 +11,37 @@ scrape_configs:
       - targets: 
         - 'localhost:9090'
         labels:
-          instance: 'dclocal-prometheus1'
-          target: prometheus
+          instance: 'prometheus'
 
-  - job_name: thanos-store
-    scrape_interval: 5s
-    static_configs:
-    - targets:
-      - 'thanos-store:10902'
-      labels:
-        instance: 'dclocal-prometheus1'
-        target: thanos-store
+      - targets:
+        - 'thanos-store:10902'
+        labels:
+          instance: thanos-store
 
-  - job_name: thanos-receive
-    scrape_interval: 5s
-    static_configs:
-    - targets:
-      - 'thanos-receive:10902'
-      labels:
-        instance: 'dclocal-prometheus1'
-        target: thanos-receive
+      - targets:
+        - 'thanos-receive:10902'
+        labels:
+          instance: thanos-receive
 
-  - job_name: thanos-ruler
-    scrape_interval: 5s
-    static_configs:
-    - targets:
-      - 'thanos-ruler:10902'
-      labels:
-        instance: 'dclocal-prometheus1'
-        target: thanos-ruler
+      - targets:
+        - 'thanos-ruler:10902'
+        labels:
+          instance: thanos-ruler
 
-  - job_name: thanos-querier
-    scrape_interval: 5s
-    static_configs:
-    - targets:
-      - 'thanos-querier:10902'
-      labels:
-        instance: 'dclocal-prometheus1'
-        target: thanos-querier
+      - targets:
+        - 'thanos-querier:10902'
+        labels:
+          instance: thanos-querier
 
-  - job_name: thanos-bucket-web
-    scrape_interval: 5s
-    static_configs:
-    - targets:
-      - 'thanos-bucket-web:10902'
-      labels:
-        instance: 'dclocal-prometheus1'
-        target: thanos-bucket-web
+      - targets:
+        - 'thanos-bucket-web:10902'
+        labels:
+          instance: thanos-bucket-web
 
-  - job_name: thanos-compactor
-    scrape_interval: 5s
-    static_configs:
-    - targets:
-      - 'thanos-compactor:10902'
-      labels:
-        instance: 'dclocal-prometheus1'
-        target: thanos-compactor
+      - targets:
+        - 'thanos-compactor:10902'
+        labels:
+          instance: thanos-compactor
 
 remote_write:
   - url: "http://thanos-receive:10903/api/v1/receive"
