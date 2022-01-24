@@ -1,0 +1,360 @@
+version: '3'
+
+networks:
+  thanos: {}
+
+volumes:
+  grafana_data: {}
+  minio_data: {}
+  beacon-prometheus1_data: {}
+  beacon-prometheus2_data: {}
+  beacon-prometheus3_data: {}
+  beacon-prometheus4_data: {}
+  dclocal-prometheus1_data: {}
+  dclocal-prometheus2_data: {}
+
+services:
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana
+    volumes:
+      - grafana_data:/var/lib/grafana
+    environment:
+      - GF_SECURITY_ADMIN_USER=${ADMIN_USER:-admin}
+      - GF_SECURITY_ADMIN_PASSWORD=${ADMIN_PASSWORD:-foobar}
+      - GF_USERS_ALLOW_SIGN_UP=false
+    restart: unless-stopped
+    ports:
+      - 13000:3000
+    networks:
+      - thanos
+
+  beacon-node-exporter1:
+    image: prom/node-exporter:latest
+    container_name: beacon-node-exporter1
+    ports:
+      - 19100:9100
+    volumes:
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /:/rootfs:ro
+    command:
+      - '--path.procfs=/host/proc'
+      - '--path.rootfs=/rootfs'
+      - '--path.sysfs=/host/sys'
+      - '--collector.filesystem.ignored-mount-points=^/(sys|proc|dev|host|etc)($$|/)'
+    restart: unless-stopped
+    networks:
+      - thanos
+
+  beacon-node-exporter2:
+    image: prom/node-exporter:latest
+    container_name: beacon-node-exporter2
+    ports:
+      - 29100:9100
+    volumes:
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /:/rootfs:ro
+    command:
+      - '--path.procfs=/host/proc'
+      - '--path.rootfs=/rootfs'
+      - '--path.sysfs=/host/sys'
+      - '--collector.filesystem.ignored-mount-points=^/(sys|proc|dev|host|etc)($$|/)'
+    networks:
+      - thanos
+    restart: unless-stopped
+
+  beacon-node-exporter3:
+    image: prom/node-exporter:latest
+    container_name: beacon-node-exporter3
+    ports:
+      - 39100:9100
+    volumes:
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /:/rootfs:ro
+    command:
+      - '--path.procfs=/host/proc'
+      - '--path.rootfs=/rootfs'
+      - '--path.sysfs=/host/sys'
+      - '--collector.filesystem.ignored-mount-points=^/(sys|proc|dev|host|etc)($$|/)'
+    networks:
+      - thanos
+    restart: unless-stopped
+
+  beacon-node-exporter4:
+    image: prom/node-exporter:latest
+    container_name: beacon-node-exporter4
+    ports:
+      - 49100:9100
+    volumes:
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /:/rootfs:ro
+    command:
+      - '--path.procfs=/host/proc'
+      - '--path.rootfs=/rootfs'
+      - '--path.sysfs=/host/sys'
+      - '--collector.filesystem.ignored-mount-points=^/(sys|proc|dev|host|etc)($$|/)'
+    networks:
+      - thanos
+    restart: unless-stopped
+
+  beacon-prometheus1:
+    image: prom/prometheus:latest
+    container_name: beacon-prometheus1
+    user: root
+    ports:
+      - 19090:9090
+    volumes:
+      - ./beacon-prometheus1:/etc/prometheus
+      - beacon-prometheus1_data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+    networks:
+      - thanos
+    restart: unless-stopped
+
+  beacon-prometheus2:
+    image: prom/prometheus:latest
+    container_name: beacon-prometheus2
+    user: root
+    ports:
+      - 29090:9090
+    volumes:
+      - ./beacon-prometheus2:/etc/prometheus
+      - beacon-prometheus2_data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+    networks:
+      - thanos
+    restart: unless-stopped
+
+  beacon-prometheus3:
+    image: prom/prometheus:latest
+    container_name: beacon-prometheus3
+    user: root
+    ports:
+      - 39090:9090
+    volumes:
+      - ./beacon-prometheus3:/etc/prometheus
+      - beacon-prometheus3_data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+    networks:
+      - thanos
+    restart: unless-stopped
+
+  beacon-prometheus4:
+    image: prom/prometheus:latest
+    container_name: beacon-prometheus4
+    user: root
+    ports:
+      - 49090:9090
+    volumes:
+      - ./beacon-prometheus4:/etc/prometheus
+      - beacon-prometheus4_data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+    networks:
+      - thanos
+    restart: unless-stopped
+
+  dclocal-prometheus1:
+    image: prom/prometheus:latest
+    container_name: dclocal-prometheus1
+    user: root
+    ports:
+      - 2221:9090
+    volumes:
+      - ./dclocal-prometheus1:/etc/prometheus
+      - dclocal-prometheus1_data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--enable-feature=remote-write-receiver'
+      - '--log.level=warn'
+      - '--storage.tsdb.path=/prometheus'
+      - '--storage.tsdb.max-block-duration=2h'
+      - '--storage.tsdb.min-block-duration=2h'
+    networks:
+      - thanos
+    restart: unless-stopped
+    depends_on:
+      - thanos-receive
+
+  dclocal-prometheus2:
+    image: prom/prometheus:latest
+    container_name: dclocal-prometheus2
+    user: root
+    ports:
+      - 2222:9090
+    volumes:
+      - ./dclocal-prometheus2:/etc/prometheus
+      - dclocal-prometheus2_data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--enable-feature=remote-write-receiver'
+      - '--log.level=warn'
+      - '--storage.tsdb.path=/prometheus'
+      - '--storage.tsdb.max-block-duration=2h'
+      - '--storage.tsdb.min-block-duration=2h'
+    networks:
+      - thanos
+    restart: unless-stopped
+    depends_on:
+      - thanos-receive
+
+  minio:
+    image: minio/minio:latest
+    container_name: minio
+    hostname: minio
+    volumes:
+      - minio_data:/data
+    ports:
+      - 19000:9000
+      - 19001:9001
+    networks:
+      - thanos
+    restart: unless-stopped
+    environment:
+      MINIO_ROOT_USER: EXAMPLEKEY
+      MINIO_ROOT_PASSWORD: EXAMPLESECRET
+    entrypoint: sh
+    command: -c 'mkdir -p /data/thanos && minio server /data --console-address :9001'
+
+  thanos-store:
+    container_name: thanos-store
+    image: thanosio/thanos:v0.24.0
+    volumes:
+        - ./thanos/:/etc/thanos/
+    command:
+        - 'store'
+        - '--grpc-address=0.0.0.0:10091'
+        - '--http-address=0.0.0.0:10902'
+        - '--data-dir=/tmp/thanos-store'
+        - '--objstore.config-file=/etc/thanos/bucket.yml'
+    networks:
+      - thanos
+    depends_on:
+        - minio
+    restart: unless-stopped
+
+  thanos-receive:
+    image: thanosio/thanos:v0.24.0
+    container_name: thanos-receive
+    command:
+      - 'receive'
+      - '--debug.name=thanos-receive'
+      - '--log.level=debug'
+      - '--tsdb.path=/tmp/thanos-receive'
+      - '--grpc-address=0.0.0.0:10901'
+      - '--grpc-grace-period=1s'
+      - '--http-address=0.0.0.0:10902'
+      - '--http-grace-period=1s'
+      - '--label=receive="true"'
+      - '--objstore.config-file=/etc/thanos/bucket.yml'
+      - '--remote-write.address=0.0.0.0:10903'
+    volumes:
+      - ./thanos:/etc/thanos
+    depends_on:
+      - minio
+    networks:
+      - thanos
+    restart: unless-stopped
+
+  thanos-ruler:
+    container_name: thanos-ruler
+    image: thanosio/thanos:v0.24.0
+    volumes:
+        - ./thanos/:/etc/thanos/
+    command:
+        - 'rule'
+        - '--grpc-address=0.0.0.0:10091'
+        - '--http-address=0.0.0.0:10902'
+        - '--log.level=debug'
+        - '--data-dir=/data'
+        - '--eval-interval=15s'
+        - '--rule-file=/etc/thanos/*.rules.yml'
+        - '--alertmanagers.url=http://alertmanager:9093'
+        - '--query=thanos-querier:10902'
+        - '--objstore.config-file=/etc/thanos/bucket.yml'
+        - '--label=ruler_cluster="vegas"'
+        - '--label=ruler_replica="r1"'
+    ports:
+        - 20903:10902
+    depends_on:
+        - minio
+        - thanos-querier
+    networks:
+      - thanos
+    restart: unless-stopped
+
+  thanos-querier:
+    container_name: thanos-querier
+    image: thanosio/thanos:v0.24.0
+    command:
+        - 'query'
+        - '--grpc-address=0.0.0.0:10091'
+        - '--http-address=0.0.0.0:10902'
+        - '--query.replica-label=replica'
+        - '--store=thanos-store:10091'
+        - '--store=thanos-receive:10901'
+        - '--store=thanos-ruler:10091'
+    ports:
+        - 20902:10902
+    networks:
+      - thanos
+    restart: unless-stopped
+
+  thanos-bucket-web:
+    container_name: thanos-bucket-web
+    image: thanosio/thanos:v0.24.0
+    volumes:
+        - ./thanos/:/etc/thanos/
+    command:
+        - 'tools'
+        - 'bucket'
+        - 'web'
+        - '--http-address=0.0.0.0:10902'
+        - '--log.level=debug'
+        - '--objstore.config-file=/etc/thanos/bucket.yml'
+        - '--refresh=5m'
+        - '--timeout=2m'
+        - '--label=replica'
+    ports:
+        - 20904:10902
+    networks:
+      - thanos
+    depends_on:
+        - minio
+    restart: unless-stopped
+
+  thanos-compactor:
+    container_name: thanos-compactor
+    image: thanosio/thanos:v0.24.0
+    volumes:
+        - ./thanos/:/etc/thanos/
+    command:
+        - 'compact'
+        - '--log.level=debug'
+        - '--data-dir=/data'
+        - '--objstore.config-file=/etc/thanos/bucket.yml'
+        - '--wait'
+    networks:
+      - thanos
+    depends_on:
+        - minio
+    restart: unless-stopped
+
+  alertmanager:
+    container_name: alertmanager
+    image: prom/alertmanager:v0.23.0
+    ports:
+        - 19093:9093
+    volumes:
+        - ./alertmanager/:/etc/alertmanager/
+    command:
+        - '--config.file=/etc/alertmanager/config.yml'
+        - '--storage.path=/alertmanager'
+    restart: unless-stopped

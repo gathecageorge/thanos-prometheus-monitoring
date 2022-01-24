@@ -1,0 +1,23 @@
+global:
+  scrape_interval: 5s
+  evaluation_interval: 5s
+  external_labels:
+    instance: 'beacon-prometheus1'
+    cluster: 'beacon-prometheus1'
+    replica: '1'
+
+scrape_configs:
+  - job_name: beacon-prometheus1
+    scrape_interval: 5s
+    static_configs:
+      - targets: 
+        - 'localhost:9090'
+        labels:
+          instance: 'beacon-prometheus1'
+          target: prometheus
+    file_sd_configs:
+      - files:
+          - "/etc/prometheus/file_sd/*.yml"
+
+remote_write:
+  - url: "http://dclocal-prometheus1:9090/api/v1/write"

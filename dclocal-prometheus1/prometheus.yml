@@ -1,0 +1,20 @@
+global:
+  scrape_interval: 5s
+  evaluation_interval: 5s
+  external_labels:
+    cluster: 'dclocal-prometheus1'
+    instance: 'dclocal-prometheus1'
+    replica: '1'
+
+scrape_configs:
+  - job_name: dclocal-prometheus1
+    scrape_interval: 5s
+    static_configs:
+      - targets: 
+        - 'localhost:9090'
+        labels:
+          instance: 'dclocal-prometheus1'
+          target: prometheus
+
+remote_write:
+  - url: "http://thanos-receive:10903/api/v1/receive"

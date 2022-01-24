@@ -1,0 +1,5 @@
+- labels:
+    target: node-exporter
+    instance: 'beacon-prometheus4'
+  targets:
+  - beacon-node-exporter4:9100
